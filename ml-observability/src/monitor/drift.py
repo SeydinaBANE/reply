@@ -1,6 +1,8 @@
 import numpy as np
 from numpy.typing import NDArray
 
+from monitor.models import AlertLevel
+
 
 def population_stability_index(
     reference: NDArray[np.float64],
@@ -16,6 +18,14 @@ def population_stability_index(
 
     contributions = (cur_ratio - ref_ratio) * np.log(cur_ratio / ref_ratio)
     return float(np.sum(contributions))
+
+
+def classify_drift(psi: float, warning_threshold: float, critical_threshold: float) -> AlertLevel:
+    if psi >= critical_threshold:
+        return AlertLevel.CRITICAL
+    if psi >= warning_threshold:
+        return AlertLevel.WARNING
+    return AlertLevel.OK
 
 
 def _to_ratio(counts: NDArray[np.int_], epsilon: float = 1e-6) -> NDArray[np.float64]:

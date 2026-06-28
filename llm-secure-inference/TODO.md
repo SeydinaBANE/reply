@@ -1,28 +1,29 @@
 # TODO — llm-secure-inference
 
 ## Vault
-- [ ] Implémenter `VaultClient.read_secret()` réel (hvac, KV v2)
+- [x] `HvacSecretReader` (KV v2) + `VaultClient.read_secret`
+- [x] Chargement des clés API autorisées depuis Vault au démarrage
 - [ ] Cache court + invalidation, gestion de la rotation
 - [ ] Auth Kubernetes (Vault Agent sidecar / k8s auth method)
 - [ ] Lease renewal pour les secrets dynamiques (DB creds)
 
 ## Rate-limiting
-- [ ] Finaliser le token bucket distribué (script Lua atomique Redis)
-- [ ] Quotas par clé d'API / par tenant
-- [ ] En-têtes `X-RateLimit-*` dans la réponse
+- [x] Compteur distribué par clé d'API (Redis) avec quota/minute
+- [x] En-tête `X-RateLimit-Remaining` dans la réponse
+- [ ] Token bucket atomique (script Lua) pour la précision sous forte charge
+- [ ] Quotas différenciés par tenant
 
 ## API & auth
-- [ ] Auth Bearer + vérification de la clé contre Vault
-- [ ] Endpoint `POST /v1/completions` (proxy vers backend LLM)
-- [ ] Journalisation d'audit (qui, quand, quel modèle)
+- [x] Auth Bearer + vérification de la clé (`ApiKeyAuthenticator`)
+- [x] Endpoint `POST /v1/completions` (backend abstrait)
+- [x] Journalisation d'audit (clé masquée)
+- [ ] Backend LLM réel (Vertex/vLLM) derrière `LlmBackend`
 
 ## Sécurité K8s
-- [ ] `Deployment` : runAsNonRoot, readOnlyRootFilesystem, drop capabilities
-- [ ] `Role` + `RoleBinding` minimalistes
+- [x] `Deployment` durci (runAsNonRoot, readOnlyRootFilesystem, drop caps)
+- [x] `Role` + `RoleBinding` minimalistes
 - [ ] NetworkPolicy egress restreint
-- [ ] Annotations Vault Agent Injector
 
 ## Tests
-- [ ] `test_ratelimit_allows_under_quota`
-- [ ] `test_ratelimit_blocks_over_quota`
-- [ ] `test_vault_missing_secret_raises`
+- [x] auth, rate-limit, backend, service, endpoints API (14 tests)
+- [ ] Test d'intégration contre un Vault de dev (testcontainers)

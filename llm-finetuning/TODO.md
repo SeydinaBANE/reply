@@ -1,26 +1,31 @@
 # TODO — llm-finetuning
 
 ## Dataset
-- [ ] Valider le schéma instruction/réponse (`validate_examples` esquissé)
+- [x] Chargement JSONL (`load_jsonl`) + validation instruction/réponse
+- [x] Template de prompt (`format_prompt`)
 - [ ] Split train/val/test reproductible
-- [ ] Formatage prompt-template + masquage des tokens de prompt
+- [ ] Masquage des tokens de prompt à l'entraînement
 
 ## Fine-tuning
-- [ ] Implémenter le training LoRA/QLoRA (peft + transformers / bitsandbytes)
-- [ ] Config hyperparamètres (rank, alpha, dropout, lr) via YAML
+- [x] Config hyperparamètres LoRA via YAML (`load_lora_config`)
+- [x] Plan d'entraînement (`build_training_plan`)
+- [ ] Implémenter le training LoRA/QLoRA réel (peft + transformers / bitsandbytes)
 - [ ] Checkpointing + sauvegarde de l'adapter
 - [ ] Lancement sur Vertex AI custom training job (GPU)
 
 ## Évaluation
-- [ ] Étendre le harness : exact match (fait), ROUGE/BLEU, LLM-as-judge
+- [x] Harness : exact match + normalized match (`evaluate_model`)
+- [x] Adaptateur de génération Vertex (`VertexTextGenerator`, lazy)
+- [x] Rapport JSON + markdown (`report.py`)
+- [x] Gate baseline (`enforce_baseline`)
 - [ ] Comparaison base vs fine-tuné sur un set figé
-- [ ] Génération d'un rapport JSON + markdown
+- [ ] LLM-as-judge en complément des métriques exactes
 
 ## CI
-- [ ] Job CI qui rejoue l'éval et bloque si régression vs baseline
-- [ ] Publication du rapport en artefact
+- [x] Jobs lint / typecheck / test
+- [x] Entrée CLI `python -m finetune` pour l'eval-gate
+- [ ] Bloquer la CI sur régression vs baseline historique (pas seuil fixe)
 
 ## Tests
-- [ ] `test_exact_match_score_perfect`
-- [ ] `test_exact_match_score_partial`
-- [ ] `test_validate_examples_rejects_empty`
+- [x] dataset, prompt, evaluate (exact/normalized), baseline, report, runner
+- [ ] Test d'intégration génération Vertex (mock SDK)

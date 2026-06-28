@@ -8,3 +8,11 @@ class SecretNotFoundError(InferenceError):
 
 class RateLimitExceededError(InferenceError):
     pass
+
+
+class UnauthorizedError(InferenceError):
+    pass
+
+
+class BackendError(InferenceError):
+    pass

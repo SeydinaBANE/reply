@@ -9,4 +9,4 @@ COPY src ./src
 RUN pip install --no-deps -e .
 
 USER 1000
-ENTRYPOINT ["python", "-m", "finetune.train"]
+ENTRYPOINT ["python", "-m", "finetune"]

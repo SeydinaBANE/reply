@@ -10,9 +10,13 @@ client ──► FastAPI (auth) ──► RateLimiter (Redis) ──► LLM back
                   └──► VaultClient (clés API, rotation)
 ```
 
-- `src/inference/vault_client.py` — lecture des secrets KV + cache court.
-- `src/inference/ratelimit.py` — token bucket distribué (Redis).
-- `src/inference/main.py` — API, auth Bearer, traduction des erreurs domaine.
+- `src/inference/vault_client.py` — `VaultClient` + `HvacSecretReader` (lecture KV v2).
+- `src/inference/auth.py` — `ApiKeyAuthenticator` (clés chargées depuis Vault au démarrage).
+- `src/inference/ratelimit.py` — compteur distribué par clé (Redis).
+- `src/inference/backend.py` — `LlmBackend` (Protocol) + `EchoBackend`.
+- `src/inference/audit.py` — journal d'audit (clé masquée).
+- `src/inference/service.py` — orchestration auth → rate-limit → backend → audit.
+- `src/inference/main.py` — API : auth Bearer, `/v1/completions`, `/healthz`, `/readyz`.
 - `k8s/` — Deployment non-root, RBAC, ServiceAccount, Vault Agent annotations.
 
 ## Démarrage

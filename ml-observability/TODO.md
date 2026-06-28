@@ -1,25 +1,26 @@
 # TODO — ml-observability
 
 ## Métriques
-- [ ] Exposer histogramme de latence + compteur d'erreurs sur `/metrics`
-- [ ] Métrique de coût tokens LLM (compteur par modèle)
-- [ ] Middleware FastAPI d'instrumentation automatique
+- [x] Histogramme de latence + compteur d'erreurs (`observe_request`)
+- [x] Métrique de coût tokens LLM (`add_tokens`)
+- [x] Middleware FastAPI d'instrumentation (latence HTTP par route)
 
 ## Drift
-- [ ] Implémenter `population_stability_index()` (déjà esquissé) + tests numériques
-- [ ] Job périodique : comparer fenêtre prod vs jeu de référence
-- [ ] Seuils d'alerte (PSI > 0.2 = warning, > 0.25 = critique) → Redis pub/sub
+- [x] `population_stability_index()` + tests numériques
+- [x] Classification en niveaux (`classify_drift`) + `evaluate_drift` multi-feature
+- [x] Publication d'alertes Redis quand seuil dépassé (`AlertPublisher`)
+- [ ] Job périodique : comparer fenêtre prod (store) vs jeu de référence
 - [ ] Drift de concept (suivi de la métrique cible si labels disponibles)
 
 ## Stockage
-- [ ] Schéma PostgreSQL `predictions(id, ts, features jsonb, prediction, latency_ms)`
+- [x] Schéma PostgreSQL `predictions` + `record` / `recent_features`
 - [ ] Rétention / partitionnement par jour
 
 ## Visualisation
-- [ ] Compléter `grafana/dashboard.json` (panels latence p50/p95/p99, erreurs, drift)
+- [x] `grafana/dashboard.json` (latence, erreurs, tokens)
 - [ ] Provisioning automatique datasource Prometheus
 - [ ] Règles d'alerte Grafana
 
 ## Tests
-- [ ] `test_psi_identical_distributions_is_zero`
-- [ ] `test_psi_detects_shift`
+- [x] PSI, classification, evaluate_drift, store, alerts, endpoints API
+- [ ] Job de drift périodique de bout en bout

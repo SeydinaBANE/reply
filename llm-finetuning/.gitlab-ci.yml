@@ -20,7 +20,7 @@ test:
 eval-gate:
   stage: eval
   script:
-    - python -m finetune.evaluate --report eval_report.json --baseline "$EVAL_BASELINE"
+    - python -m finetune --eval-data data/eval.jsonl --report eval_report.json
   artifacts:
     paths: [eval_report.json]
   only: [tags]

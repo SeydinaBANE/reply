@@ -10,9 +10,14 @@ dataset ──► fine-tune (LoRA, Vertex training job) ──► adapter
                                                           └──► eval harness ──► rapport
 ```
 
-- `src/finetune/dataset.py` — chargement/validation du dataset d'instruction.
-- `src/finetune/train.py` — config LoRA/QLoRA + lancement du job.
-- `src/finetune/evaluate.py` — harness d'évaluation (exact match, score agrégé).
+- `src/finetune/dataset.py` — chargement JSONL + validation des exemples instruction/réponse.
+- `src/finetune/prompt.py` — template de prompt instruction → réponse.
+- `src/finetune/train.py` — config LoRA/QLoRA + plan d'entraînement.
+- `src/finetune/evaluate.py` — harness (exact match, normalized match) + gate baseline.
+- `src/finetune/generator.py` — adaptateur Vertex AI (`TextGenerator`, import lazy).
+- `src/finetune/report.py` — rapport d'évaluation (JSON + markdown).
+- `src/finetune/runner.py` — orchestration évaluation → rapport → gate.
+- `src/finetune/__main__.py` — entrée CLI (`python -m finetune --eval-data … --report …`).
 - `vertex/job.py` — soumission du custom training job Vertex AI.
 
 ## Démarrage
@@ -21,7 +26,7 @@ dataset ──► fine-tune (LoRA, Vertex training job) ──► adapter
 make install
 cp .env.example .env
 make test
-python -m finetune.train --config configs/lora.yaml
+python -m finetune --eval-data data/eval.jsonl --report eval_report.json
 ```
 
 Voir [`TODO.md`](TODO.md).

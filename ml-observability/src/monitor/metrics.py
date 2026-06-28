@@ -17,3 +17,13 @@ TOKENS_USED = Counter(
     "Total tokens consumed by LLM calls",
     labelnames=("model",),
 )
+
+
+def observe_request(model: str, latency_seconds: float, failed: bool) -> None:
+    REQUEST_LATENCY.labels(model=model).observe(latency_seconds)
+    if failed:
+        REQUEST_ERRORS.labels(model=model).inc()
+
+
+def add_tokens(model: str, tokens: int) -> None:
+    TOKENS_USED.labels(model=model).inc(tokens)

@@ -4,3 +4,7 @@ class FinetuneError(Exception):
 
 class InvalidDatasetError(FinetuneError):
     pass
+
+
+class EvaluationBaselineError(FinetuneError):
+    pass
