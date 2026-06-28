@@ -9,9 +9,14 @@ class Settings(BaseSettings):
     vertex_project: str
     vertex_location: str = "europe-west1"
     embedding_model: str = "text-embedding-004"
+    embedding_dim: int = 768
     generation_model: str = "gemini-1.5-pro"
     top_k: int = 5
     embedding_cache_ttl: int = 86_400
+    chunk_size: int = 800
+    chunk_overlap: int = 100
+    pool_min_size: int = 1
+    pool_max_size: int = 10
 
 
 def load_settings() -> Settings:

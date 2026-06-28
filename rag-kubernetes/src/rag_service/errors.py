@@ -8,3 +8,7 @@ class EmptyCorpusError(RagError):
 
 class EmbeddingError(RagError):
     pass
+
+
+class GenerationError(RagError):
+    pass

@@ -41,5 +41,6 @@ class CachedEmbedder:
         return ",".join(repr(value) for value in vector).encode("utf-8")
 
     @staticmethod
-    def _decode(raw: bytes) -> list[float]:
-        return [float(value) for value in raw.decode("utf-8").split(",")]
+    def _decode(raw: bytes | str) -> list[float]:
+        text = raw.decode("utf-8") if isinstance(raw, bytes) else raw
+        return [float(value) for value in text.split(",")]

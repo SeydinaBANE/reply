@@ -15,3 +15,13 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     answer: str
     sources: list[Passage]
+
+
+class IngestRequest(BaseModel):
+    document_id: str = Field(min_length=1)
+    content: str = Field(min_length=1)
+
+
+class IngestResponse(BaseModel):
+    document_id: str
+    chunks: int

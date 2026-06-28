@@ -1,33 +1,35 @@
 # TODO — rag-kubernetes
 
 ## Domaine / Retrieval
-- [ ] Implémenter `Retriever.retrieve()` : requête pgvector `ORDER BY embedding <=> $1 LIMIT k`
-- [ ] Chunking des documents (taille + overlap configurables)
+- [x] Implémenter `Retriever.retrieve()` (pgvector cosine via `PgVectorStore.search`)
+- [x] Chunking des documents (taille + overlap configurables)
+- [x] Gestion du cas corpus vide (lève `EmptyCorpusError`)
 - [ ] Re-ranking optionnel des passages récupérés
-- [ ] Gestion du cas corpus vide (lève `EmptyCorpusError`)
 
 ## Embeddings
-- [ ] Adaptateur Vertex AI `text-embedding` réel (actuellement stub)
-- [ ] Cache Redis : clé = hash(texte), TTL configurable
+- [x] Adaptateur Vertex AI `text-embedding` (`VertexEmbeddingBackend`, import lazy)
+- [x] Cache Redis : clé = hash(texte), TTL configurable
 - [ ] Batch des appels d'embedding
 
 ## API
-- [ ] Endpoint `POST /query` : question → réponse + sources citées
-- [ ] Endpoint `POST /ingest` : upload + indexation de documents
-- [ ] Endpoint `GET /healthz` et `GET /readyz`
+- [x] Endpoint `POST /query` : question → réponse + sources citées
+- [x] Endpoint `POST /ingest` : indexation de documents
+- [x] Endpoints `GET /healthz` et `GET /readyz`
 - [ ] Streaming de la réponse LLM (SSE)
 
 ## Données
-- [ ] Migration SQL : extension `vector`, table `documents(id, content, embedding vector)`
-- [ ] Index ivfflat / hnsw sur la colonne embedding
+- [x] Migration SQL : extension `vector`, table `documents`
+- [x] Index HNSW cosine sur la colonne embedding
+- [ ] Script d'application des migrations au démarrage
 
 ## Infra
-- [ ] Compléter `k8s/deployment.yaml` (resources, liveness/readiness probes)
+- [x] `k8s/deployment.yaml` (resources, liveness/readiness probes)
+- [x] Pipeline GitLab : lint → typecheck → test → build
 - [ ] `Secret` K8s pour DATABASE_URL / credentials Vertex
 - [ ] HorizontalPodAutoscaler sur la CPU
-- [ ] Pipeline GitLab : lint → typecheck → test → build → push
 
 ## Tests
-- [ ] `test_retrieve_empty_corpus` (déjà esquissé)
-- [ ] `test_retrieve_returns_top_k`
-- [ ] `test_query_endpoint_cites_sources` (TestClient + mocks)
+- [x] `test_retrieve_empty_corpus`, `test_retrieve_returns_top_k`
+- [x] Chunking, cache embeddings, pipeline, ingestion
+- [x] Endpoints API (`/query`, `/ingest`) via TestClient + overrides
+- [ ] Tests d'intégration store contre une vraie base pgvector
