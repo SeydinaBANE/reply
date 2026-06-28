@@ -13,7 +13,7 @@ industrialisation et déploiement de solutions IA en production (MLOps / GenAI).
 | 4 | Service d'inférence LLM sécurisé | [`llm-secure-inference/`](llm-secure-inference/) | Vault, K8s RBAC, Redis rate-limiting, FastAPI |
 | 5 | Fine-tuning + évaluation d'un LLM | [`llm-finetuning/`](llm-finetuning/) | Vertex AI training, LoRA/QLoRA, eval harness, CI |
 
-## Couverture du stack de l'offre
+## Couverture du stack 
 
 Python · Git/GitLab · Docker · Kubernetes · Vault · JFrog · Grafana · Redis ·
 PostgreSQL · GCP Vertex AI · RAG / vector databases · fine-tuning
