@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/SeydinaBANE/reply/actions/workflows/ci.yml/badge.svg)](https://github.com/SeydinaBANE/reply/actions/workflows/ci.yml)
 
-Monorepo de 5 projets construits autour de l'offre **AI Engineer (H/F)** : conception,
+Monorepo de 5 projets  : conception,
 industrialisation et déploiement de solutions IA en production (MLOps / GenAI).
 
 | # | Projet | Dossier | Compétences clés démontrées |
