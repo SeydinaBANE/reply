@@ -1,27 +1,36 @@
 # TODO — mlops-pipeline
 
 ## Entraînement
-- [ ] Implémenter `train_model()` réel (sklearn/xgboost) avec split train/val
-- [ ] Logguer params, métriques et artefact via MLflow
+- [x] Implémenter `train_model()` (LogisticRegression + StandardScaler) avec split train/val
+- [x] Métriques accuracy + f1
+- [x] Sérialisation du modèle (`save_model`, joblib)
 - [ ] Seed déterministe + versioning des données (DVC ou hash dataset)
 - [ ] Validation de schéma des données d'entrée (pandera)
 
+## Tracking
+- [x] `ExperimentTracker` (Protocol) + adaptateurs MLflow / NoOp
+- [ ] Logguer aussi les hyperparamètres et tags de version
+- [ ] Démarrer/fermer explicitement un run MLflow (context manager)
+
 ## Registry (JFrog)
-- [ ] Implémenter `ArtifactRegistry.push()` / `pull()` vers Artifactory
+- [x] `ArtifactRegistry.push()` / `pull()` vers Artifactory
 - [ ] Promotion par tags (staging → production)
 - [ ] Récupération du modèle au démarrage du service de serving
 
-## Orchestration Vertex
-- [ ] Compléter le DAG `vertex/pipeline.py` (composants train → eval → register)
-- [ ] Gate d'évaluation : ne déployer que si métrique > seuil
-- [ ] Planification (Vertex Pipelines Scheduler)
+## Évaluation
+- [x] Gate d'évaluation : `passes_gate` / `enforce_gate` sur seuil d'accuracy
+- [ ] Comparaison vs baseline historique (pas seulement un seuil fixe)
+
+## Orchestration
+- [x] `runner.run_pipeline` train → log → save → push → gate
+- [x] Entrée CLI `python -m pipeline`
+- [ ] DAG Vertex AI Pipelines réel (composants train → eval → register)
 
 ## CI/CD GitLab
-- [ ] Job `train` déclenché sur tag, push artefact JFrog
-- [ ] Job `build` + push image vers le registry GitLab
-- [ ] Job `deploy` (kubectl) avec environnements staging/prod
-- [ ] Secrets via variables CI masquées / Vault
+- [x] Jobs lint / typecheck / test
+- [ ] Job `train` (tag) + push artefact JFrog avec secrets masqués / Vault
+- [ ] Job `deploy` (kubectl) staging/prod
 
 ## Tests
-- [ ] `test_train_model_returns_metrics`
-- [ ] `test_registry_push_invalid_path_raises`
+- [x] train (métriques, apprentissage, sérialisation), dataset, évaluation, registry, runner
+- [ ] Tests d'intégration MLflow + JFrog (testcontainers)

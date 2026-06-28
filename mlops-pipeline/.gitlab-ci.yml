@@ -27,7 +27,7 @@ train:
   extends: .python
   stage: train
   script:
-    - python -m pipeline.train --data data/train.csv
+    - python -m pipeline --data data/train.csv --label-column label
   artifacts:
     paths: [models/]
   only: [tags]

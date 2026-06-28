@@ -9,4 +9,4 @@ COPY src ./src
 RUN pip install --no-deps -e .
 
 USER 1000
-ENTRYPOINT ["python", "-m", "pipeline.train"]
+ENTRYPOINT ["python", "-m", "pipeline"]

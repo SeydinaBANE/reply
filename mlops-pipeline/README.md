@@ -11,8 +11,13 @@ GitLab CI ──► train (MLflow tracking) ──► artifact (JFrog) ──►
                                                                    └──► deploy (K8s)
 ```
 
-- `src/pipeline/train.py` — entraînement + log des métriques/params/artefact.
+- `src/pipeline/dataset.py` — chargement + validation du dataset (CSV → features/labels).
+- `src/pipeline/train.py` — entraînement (LogisticRegression) + métriques + sérialisation.
+- `src/pipeline/evaluation.py` — gate d'évaluation (seuil d'accuracy).
+- `src/pipeline/tracker.py` — `ExperimentTracker` (Protocol) + adaptateurs MLflow / NoOp.
 - `src/pipeline/registry.py` — publication/récupération de l'artefact modèle (JFrog).
+- `src/pipeline/runner.py` — orchestration train → log → save → push → gate.
+- `src/pipeline/__main__.py` — entrée CLI (`python -m pipeline`).
 - `src/pipeline/config.py` — configuration via `pydantic-settings`.
 - `vertex/pipeline.py` — définition du DAG Vertex AI Pipelines.
 
@@ -22,7 +27,7 @@ GitLab CI ──► train (MLflow tracking) ──► artifact (JFrog) ──►
 make install
 cp .env.example .env
 make test
-python -m pipeline.train --data data/train.csv
+python -m pipeline --data data/train.csv --label-column label
 ```
 
 Voir [`TODO.md`](TODO.md).

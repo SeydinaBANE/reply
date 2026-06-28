@@ -25,7 +25,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["sklearn.*"]
+module = ["sklearn.*", "mlflow.*", "joblib.*", "pandas.*"]
 ignore_missing_imports = true
 
 [build-system]

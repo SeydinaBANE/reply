@@ -1,21 +1,28 @@
 from pathlib import Path
 
-import pytest
+from pipeline.models import Dataset
+from pipeline.train import save_model, train_model
 
-from pipeline.errors import RegistryError
-from pipeline.registry import ArtifactRegistry
-from pipeline.train import train_model
+
+def toy_dataset() -> Dataset:
+    positive = [[float(i), float(i)] for i in range(20)]
+    negative = [[float(-i), float(-i)] for i in range(1, 21)]
+    return Dataset(features=positive + negative, labels=[1] * 20 + [0] * 20)
 
 
 def test_train_model_returns_metrics() -> None:
-    features = [[float(i)] for i in range(20)]
-    labels = [i % 2 for i in range(20)]
-    result = train_model(features, labels, seed=0)
-    assert 0.0 <= result.accuracy <= 1.0
-    assert result.n_train + result.n_test == 20
+    _, report = train_model(toy_dataset(), seed=0)
+    assert 0.0 <= report.accuracy <= 1.0
+    assert report.n_train + report.n_test == 40
 
 
-def test_registry_push_missing_artifact_raises(tmp_path: Path) -> None:
-    registry = ArtifactRegistry("https://example.com", "repo", "token")
-    with pytest.raises(RegistryError):
-        registry.push(tmp_path / "missing.pkl", "model.pkl")
+def test_train_model_learns_separable_data() -> None:
+    _, report = train_model(toy_dataset(), seed=0)
+    assert report.accuracy >= 0.8
+
+
+def test_save_model_writes_file(tmp_path: Path) -> None:
+    model, _ = train_model(toy_dataset(), seed=0)
+    path = tmp_path / "model.joblib"
+    save_model(model, path)
+    assert path.is_file()

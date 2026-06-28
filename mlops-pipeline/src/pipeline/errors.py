@@ -8,3 +8,7 @@ class RegistryError(PipelineError):
 
 class EvaluationGateError(PipelineError):
     pass
+
+
+class InvalidDatasetError(PipelineError):
+    pass
