@@ -22,6 +22,11 @@ target-version = "py311"
 [tool.mypy]
 python_version = "3.11"
 strict = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["sklearn.*"]
+ignore_missing_imports = true
 
 [build-system]
 requires = ["setuptools>=68"]

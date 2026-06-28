@@ -20,4 +20,5 @@ def population_stability_index(
 
 def _to_ratio(counts: NDArray[np.int_], epsilon: float = 1e-6) -> NDArray[np.float64]:
     ratio = counts.astype(np.float64) / max(counts.sum(), 1)
-    return np.clip(ratio, epsilon, None)
+    clipped: NDArray[np.float64] = np.clip(ratio, epsilon, None)
+    return clipped
