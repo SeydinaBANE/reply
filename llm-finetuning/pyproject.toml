@@ -1,0 +1,26 @@
+[project]
+name = "llm-finetuning"
+version = "0.1.0"
+description = "LoRA/QLoRA fine-tuning and evaluation harness on Vertex AI"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "pyyaml>=6.0",
+    "google-cloud-aiplatform>=1.48",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.4", "mypy>=1.9", "types-PyYAML>=6.0"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

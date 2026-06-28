@@ -1,0 +1,31 @@
+stages: [quality, test, build]
+
+default:
+  image: python:3.11-slim
+  before_script:
+    - pip install -e ".[dev]"
+
+lint:
+  stage: quality
+  script:
+    - ruff check src tests
+
+typecheck:
+  stage: quality
+  script:
+    - mypy src
+
+test:
+  stage: test
+  script:
+    - pytest -q
+
+build-image:
+  stage: build
+  image: docker:26
+  services: [docker:26-dind]
+  before_script: []
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  only: [main]

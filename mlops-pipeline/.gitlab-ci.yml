@@ -1,0 +1,50 @@
+stages: [quality, test, train, build, deploy]
+
+variables:
+  IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
+.python:
+  image: python:3.11-slim
+  before_script:
+    - pip install -e ".[dev]"
+
+lint:
+  extends: .python
+  stage: quality
+  script: [ruff check src tests]
+
+typecheck:
+  extends: .python
+  stage: quality
+  script: [mypy src]
+
+test:
+  extends: .python
+  stage: test
+  script: [pytest -q]
+
+train:
+  extends: .python
+  stage: train
+  script:
+    - python -m pipeline.train --data data/train.csv
+  artifacts:
+    paths: [models/]
+  only: [tags]
+
+build-image:
+  stage: build
+  image: docker:26
+  services: [docker:26-dind]
+  script:
+    - docker build -t $IMAGE .
+    - docker push $IMAGE
+  only: [tags]
+
+deploy-staging:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl set image deployment/model-serving serving=$IMAGE -n staging
+  environment: { name: staging }
+  only: [tags]

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-secure-inference
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: llm-secure-inference
+  template:
+    metadata:
+      labels:
+        app: llm-secure-inference
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "llm-inference"
+        vault.hashicorp.com/agent-inject-secret-config: "secret/data/llm"
+    spec:
+      serviceAccountName: llm-secure-inference
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: app
+          image: llm-secure-inference:0.1.0
+          ports:
+            - containerPort: 8000
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests: { cpu: "250m", memory: "256Mi" }
+            limits: { cpu: "1", memory: "512Mi" }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8000 }
+            initialDelaySeconds: 5

@@ -1,0 +1,29 @@
+{
+  "title": "Model Observability",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Request latency p95",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(model_request_latency_seconds_bucket[5m])) by (le, model))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate",
+      "targets": [
+        { "expr": "sum(rate(model_request_errors_total[5m])) by (model)" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Tokens consumed",
+      "targets": [
+        { "expr": "sum(increase(model_tokens_total[1h])) by (model)" }
+      ]
+    }
+  ]
+}

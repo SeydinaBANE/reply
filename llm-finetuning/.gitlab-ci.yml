@@ -1,0 +1,26 @@
+stages: [quality, test, eval]
+
+default:
+  image: python:3.11-slim
+  before_script:
+    - pip install -e ".[dev]"
+
+lint:
+  stage: quality
+  script: [ruff check src tests]
+
+typecheck:
+  stage: quality
+  script: [mypy src]
+
+test:
+  stage: test
+  script: [pytest -q]
+
+eval-gate:
+  stage: eval
+  script:
+    - python -m finetune.evaluate --report eval_report.json --baseline "$EVAL_BASELINE"
+  artifacts:
+    paths: [eval_report.json]
+  only: [tags]
