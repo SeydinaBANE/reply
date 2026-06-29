@@ -8,8 +8,8 @@ class Passage(BaseModel):
 
 
 class QueryRequest(BaseModel):
-    question: str = Field(min_length=1)
-    top_k: int | None = None
+    question: str = Field(min_length=1, max_length=2_000)
+    top_k: int | None = Field(default=None, ge=1, le=50)
 
 
 class QueryResponse(BaseModel):
@@ -18,8 +18,8 @@ class QueryResponse(BaseModel):
 
 
 class IngestRequest(BaseModel):
-    document_id: str = Field(min_length=1)
-    content: str = Field(min_length=1)
+    document_id: str = Field(min_length=1, max_length=256, pattern=r"^[\w.\-:/]+$")
+    content: str = Field(min_length=1, max_length=200_000)
 
 
 class IngestResponse(BaseModel):

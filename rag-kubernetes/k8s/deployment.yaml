@@ -14,14 +14,29 @@ spec:
       labels:
         app: rag-service
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: rag-service
           image: rag-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 8000
           envFrom:
             - secretRef:
                 name: rag-service-secrets
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: "250m"
@@ -31,7 +46,7 @@ spec:
               memory: "1Gi"
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /readyz
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
@@ -41,3 +56,6 @@ spec:
               port: 8000
             initialDelaySeconds: 10
             periodSeconds: 20
+      volumes:
+        - name: tmp
+          emptyDir: {}

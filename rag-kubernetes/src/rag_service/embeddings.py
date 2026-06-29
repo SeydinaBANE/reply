@@ -5,6 +5,7 @@ from typing import Protocol
 from redis.asyncio import Redis
 
 from rag_service.errors import EmbeddingError
+from rag_service.metrics import CACHE_EVENTS
 
 logger = logging.getLogger(__name__)
 
@@ -21,15 +22,35 @@ class CachedEmbedder:
 
     async def embed(self, text: str) -> list[float]:
         key = self._cache_key(text)
-        cached = await self._redis.get(key)
+        cached = await self._read_cache(key)
         if cached is not None:
-            return self._decode(cached)
+            return cached
         try:
             vector = await self._backend.embed(text)
+        except EmbeddingError:
+            raise
         except Exception as exc:
             raise EmbeddingError(str(exc)) from exc
-        await self._redis.set(key, self._encode(vector), ex=self._ttl)
+        await self._write_cache(key, vector)
         return vector
+
+    async def _read_cache(self, key: str) -> list[float] | None:
+        try:
+            cached = await self._redis.get(key)
+        except Exception as exc:
+            logger.warning("redis get failed, bypassing cache: %s", exc)
+            return None
+        if cached is None:
+            CACHE_EVENTS.labels(result="miss").inc()
+            return None
+        CACHE_EVENTS.labels(result="hit").inc()
+        return self._decode(cached)
+
+    async def _write_cache(self, key: str, vector: list[float]) -> None:
+        try:
+            await self._redis.set(key, self._encode(vector), ex=self._ttl)
+        except Exception as exc:
+            logger.warning("redis set failed, continuing without caching: %s", exc)
 
     @staticmethod
     def _cache_key(text: str) -> str:
