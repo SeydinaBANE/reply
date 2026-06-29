@@ -34,18 +34,34 @@ make run               # uvicorn sur :8000
 
 ### Endpoints
 
-| Méthode | Route | Rôle |
-|---------|-------|------|
-| `POST` | `/ingest` | chunk + embed + indexe un document |
-| `POST` | `/query` | question → réponse générée + sources citées |
-| `GET` | `/healthz` | liveness |
-| `GET` | `/readyz` | readiness (ping PostgreSQL) |
+| Méthode | Route | Auth | Rôle |
+|---------|-------|------|------|
+| `POST` | `/ingest` | clé API | chunk + embed + indexe (upsert idempotent) un document |
+| `POST` | `/query` | clé API | question → réponse générée + sources citées |
+| `DELETE` | `/documents/{id}` | clé API | supprime un document et tous ses chunks |
+| `GET` | `/healthz` | public | liveness |
+| `GET` | `/readyz` | public | readiness (ping PostgreSQL + Redis) |
+| `GET` | `/metrics` | public | métriques Prometheus |
+
+Les routes protégées exigent l'en-tête `X-API-Key: <API_KEY>` (comparaison en temps
+constant). Les requêtes sont bornées en taille (`question` ≤ 2 000, `content` ≤ 200 000).
 
 ## Déploiement
 
 ```bash
 make docker
+kubectl create secret generic rag-service-secrets \
+  --from-literal=DATABASE_URL=... \
+  --from-literal=REDIS_URL=... \
+  --from-literal=VERTEX_PROJECT=... \
+  --from-literal=API_KEY=...
+kubectl create configmap rag-migrations --from-file=migrations/
 kubectl apply -f k8s/
 ```
+
+`k8s/` fournit : `deployment` (securityContext durci, sondes liveness `/healthz` +
+readiness `/readyz`), `service`, `hpa` (CPU 70 %), `pdb`, `networkpolicy` (egress
+restreint à PG/Redis/HTTPS) et `migration-job` (applique `migrations/*.sql`).
+`secret.example.yaml` est un gabarit — préférer `kubectl create secret`.
 
 Voir [`TODO.md`](TODO.md) pour le reste à implémenter.

@@ -17,11 +17,23 @@ class PgVectorStore:
 
     async def add(self, document_id: str, content: str, embedding: list[float]) -> None:
         await self._pool.execute(
-            "INSERT INTO documents (document_id, content, embedding) VALUES ($1, $2, $3)",
+            """
+            INSERT INTO documents (document_id, content, embedding)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (document_id)
+            DO UPDATE SET content = EXCLUDED.content, embedding = EXCLUDED.embedding
+            """,
             document_id,
             content,
             format_vector(embedding),
         )
+
+    async def delete(self, document_id: str) -> int:
+        result = await self._pool.execute(
+            "DELETE FROM documents WHERE document_id = $1 OR document_id LIKE $1 || '#%'",
+            document_id,
+        )
+        return int(result.split()[-1])
 
     async def search(self, embedding: list[float], top_k: int) -> list[Passage]:
         rows = await self._pool.fetch(

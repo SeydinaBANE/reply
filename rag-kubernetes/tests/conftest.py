@@ -35,6 +35,9 @@ class FakeStore:
     async def count(self) -> int:
         return len(self.passages)
 
+    async def delete(self, document_id: str) -> int:
+        return 1
+
 
 class FakeGenerator:
     def __init__(self, answer: str = "generated answer") -> None:

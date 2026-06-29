@@ -1,0 +1,40 @@
+# Create the migrations ConfigMap first:
+#   kubectl create configmap rag-migrations --from-file=migrations/
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rag-migrate
+  labels:
+    app: rag-service
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: rag-service
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: postgres:16-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              for f in $(ls /migrations/*.sql | sort); do
+                echo "applying ${f}"
+                psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -f "${f}"
+              done
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rag-service-secrets
+                  key: DATABASE_URL
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+      volumes:
+        - name: migrations
+          configMap:
+            name: rag-migrations

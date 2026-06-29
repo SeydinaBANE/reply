@@ -20,16 +20,25 @@
 ## Données
 - [x] Migration SQL : extension `vector`, table `documents`
 - [x] Index HNSW cosine sur la colonne embedding
-- [ ] Script d'application des migrations au démarrage
+- [x] Ingestion idempotente (index unique + upsert `ON CONFLICT`)
+- [x] Job K8s d'application des migrations au démarrage
+
+## Sécurité / Fiabilité
+- [x] Authentification par clé API (`X-API-Key`)
+- [x] Appels Vertex non bloquants (`run_in_executor`) + client initialisé une fois
+- [x] Timeouts + retries Vertex, timeouts PG/Redis, cache dégradé gracieusement
+- [x] Limites de taille des entrées
+- [x] Logging structuré + endpoint `/metrics` Prometheus
 
 ## Infra
-- [x] `k8s/deployment.yaml` (resources, liveness/readiness probes)
+- [x] `k8s/deployment.yaml` (resources, liveness/readiness probes, securityContext)
 - [x] Pipeline GitLab : lint → typecheck → test → build
-- [ ] `Secret` K8s pour DATABASE_URL / credentials Vertex
-- [ ] HorizontalPodAutoscaler sur la CPU
+- [x] `Secret` K8s pour DATABASE_URL / credentials Vertex (gabarit + `kubectl create`)
+- [x] HorizontalPodAutoscaler sur la CPU, PodDisruptionBudget, NetworkPolicy
 
 ## Tests
 - [x] `test_retrieve_empty_corpus`, `test_retrieve_returns_top_k`
 - [x] Chunking, cache embeddings, pipeline, ingestion
-- [x] Endpoints API (`/query`, `/ingest`) via TestClient + overrides
-- [ ] Tests d'intégration store contre une vraie base pgvector
+- [x] Endpoints API (`/query`, `/ingest`, `/documents/{id}`) + auth + limites de taille
+- [x] Vertex (non bloquant, retries), store (upsert/delete)
+- [x] Tests d'intégration store contre une vraie base pgvector (marqués `integration`)
