@@ -22,6 +22,8 @@ mlruns/
 models/*.bin
 models/*.safetensors
 data/
+!mlops-pipeline/data/
+!mlops-pipeline/data/sample.csv
 *.ckpt
 
 # OS / IDE
