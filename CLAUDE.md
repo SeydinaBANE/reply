@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this repo is
 
 A portfolio monorepo of **5 independent projects** built to match an AI Engineer / MLOps job
-offer (see `offre.md`). Each top-level directory is a standalone project with its own
+offer. Each top-level directory is a standalone project with its own
 `pyproject.toml`, `Dockerfile`, infrastructure manifests, `README.md` and `TODO.md`.
 
 | Directory | Purpose |
@@ -30,10 +30,17 @@ make lint         # ruff check
 make typecheck    # mypy src
 make test         # pytest
 make test-one T=tests/test_retrieval.py::test_retrieve_empty_corpus   # single test
+make run          # start the service (uvicorn) where the project exposes an API
 make docker       # build the project image
 ```
 
 If `make` is unavailable, the underlying commands are listed in each project's `Makefile`.
+The Python package name under `src/` differs per project (e.g. `rag_service`,
+`pipeline`, `monitor`, `inference`, `finetune`) — `mypy`/`ruff` target `src` and `tests`.
+
+CI runs as a single GitHub Actions matrix (`.github/workflows/ci.yml`) that executes
+`ruff check`, `mypy src`, and `pytest -q` for each project in its own working directory
+(Python 3.11). There is no GitLab pipeline despite what some project READMEs describe.
 
 ## Conventions (enforced)
 
@@ -45,5 +52,7 @@ If `make` is unavailable, the underlying commands are listed in each project's `
 
 ## Status
 
-All projects are **scaffolds**. The concrete implementation work is tracked in each
-project's `TODO.md`. Start there before writing code.
+The core of each project is **implemented** (domain logic, FastAPI/CLI entry points,
+tests). Remaining work — optional features and hardening — is tracked as unchecked items
+in each project's `TODO.md`. Read that file before extending a project so new work fits
+the intended design.
