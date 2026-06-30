@@ -10,7 +10,12 @@ from inference.audit import LoggingAuditLogger
 from inference.auth import ApiKeyAuthenticator
 from inference.backend import EchoBackend
 from inference.config import Settings, load_settings
-from inference.errors import BackendError, RateLimitExceededError, UnauthorizedError
+from inference.errors import (
+    BackendError,
+    RateLimiterUnavailableError,
+    RateLimitExceededError,
+    UnauthorizedError,
+)
 from inference.models import CompletionRequest, CompletionResponse
 from inference.ratelimit import RateLimiter
 from inference.service import InferenceService
@@ -31,7 +36,11 @@ async def build_state(settings: Settings) -> AppState:
     api_keys = vault.read_secret(settings.vault_secret_path, "api_keys").split(",")
     service = InferenceService(
         ApiKeyAuthenticator(api_keys),
-        RateLimiter(redis, settings.rate_limit_per_minute),
+        RateLimiter(
+            redis,
+            settings.rate_limit_per_minute,
+            fail_open=settings.rate_limit_fail_open,
+        ),
         EchoBackend(),
         LoggingAuditLogger(),
     )
@@ -92,6 +101,8 @@ async def completions(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
     except RateLimitExceededError as exc:
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc)) from exc
+    except RateLimiterUnavailableError as exc:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
     except BackendError as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
 

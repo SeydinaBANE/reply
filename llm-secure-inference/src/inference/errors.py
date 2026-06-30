@@ -10,6 +10,10 @@ class RateLimitExceededError(InferenceError):
     pass
 
 
+class RateLimiterUnavailableError(InferenceError):
+    pass
+
+
 class UnauthorizedError(InferenceError):
     pass
 

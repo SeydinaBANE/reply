@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     vault_secret_path: str = "secret/data/llm"
     redis_url: str
     rate_limit_per_minute: int = 60
+    rate_limit_fail_open: bool = True
 
 
 def load_settings() -> Settings:
