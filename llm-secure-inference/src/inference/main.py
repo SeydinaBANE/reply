@@ -20,6 +20,14 @@ from inference.errors import (
     RateLimitExceededError,
     UnauthorizedError,
 )
+from inference.instrumentation import prometheus_middleware, render_metrics
+from inference.metrics import (
+    AUTH_FAILURES,
+    BACKEND_ERRORS,
+    RATE_LIMITED,
+    RATELIMIT_REDIS_FAILURES,
+    TOKENS_TOTAL,
+)
 from inference.models import CompletionRequest, CompletionResponse
 from inference.ratelimit import RateLimiter
 from inference.service import InferenceService
@@ -75,6 +83,7 @@ async def build_state(settings: Settings) -> AppState:
             redis,
             settings.rate_limit_per_minute,
             fail_open=settings.rate_limit_fail_open,
+            on_failure=lambda: RATELIMIT_REDIS_FAILURES.inc(),
         ),
         build_backend(settings, http_client, backend_api_key),
         LoggingAuditLogger(),
@@ -95,6 +104,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="llm-secure-inference", lifespan=lifespan)
+app.middleware("http")(prometheus_middleware)
+
+
+@app.get("/metrics")
+async def metrics() -> Response:
+    return render_metrics()
 
 
 def get_state(request: Request) -> AppState:
@@ -145,14 +160,18 @@ async def completions(
             api_key, request.prompt, request.max_tokens
         )
     except UnauthorizedError as exc:
+        AUTH_FAILURES.inc()
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
     except RateLimitExceededError as exc:
+        RATE_LIMITED.inc()
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc)) from exc
     except RateLimiterUnavailableError as exc:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
     except BackendError as exc:
+        BACKEND_ERRORS.inc()
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
 
+    TOKENS_TOTAL.inc(completion.tokens)
     response.headers["X-RateLimit-Remaining"] = str(remaining)
     return CompletionResponse(
         completion=completion.text, tokens=completion.tokens, remaining=remaining
