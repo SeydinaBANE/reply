@@ -14,18 +14,28 @@ spec:
       annotations:
         vault.hashicorp.com/agent-inject: "true"
         vault.hashicorp.com/role: "llm-inference"
+        vault.hashicorp.com/auth-path: "auth/kubernetes"
         vault.hashicorp.com/agent-inject-secret-config: "secret/data/llm"
+        vault.hashicorp.com/agent-requests-cpu: "50m"
+        vault.hashicorp.com/agent-limits-cpu: "100m"
+        vault.hashicorp.com/agent-requests-mem: "64Mi"
+        vault.hashicorp.com/agent-limits-mem: "128Mi"
     spec:
       serviceAccountName: llm-secure-inference
+      automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
         fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: app
           image: llm-secure-inference:0.1.0
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8000
+            - name: http
+              containerPort: 8000
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -34,6 +44,17 @@ spec:
           resources:
             requests: { cpu: "250m", memory: "256Mi" }
             limits: { cpu: "1", memory: "512Mi" }
-          readinessProbe:
+          startupProbe:
             httpGet: { path: /healthz, port: 8000 }
+            periodSeconds: 3
+            failureThreshold: 20
+          readinessProbe:
+            httpGet: { path: /readyz, port: 8000 }
             initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3

@@ -1,7 +1,9 @@
+import json
 import logging
+from datetime import datetime, timezone
 from typing import Protocol
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("inference.audit")
 
 
 class AuditLogger(Protocol):
@@ -10,9 +12,14 @@ class AuditLogger(Protocol):
 
 class LoggingAuditLogger:
     def record(self, api_key: str, prompt: str, tokens: int) -> None:
-        logger.info(
-            "audit key=%s prompt_len=%d tokens=%d", _mask(api_key), len(prompt), tokens
-        )
+        event = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "event": "completion",
+            "api_key": _mask(api_key),
+            "prompt_len": len(prompt),
+            "tokens": tokens,
+        }
+        logger.info(json.dumps(event, separators=(",", ":"), sort_keys=True))
 
 
 def _mask(api_key: str) -> str:

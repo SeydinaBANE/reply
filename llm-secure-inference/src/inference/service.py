@@ -1,7 +1,7 @@
 import logging
 
 from inference.audit import AuditLogger
-from inference.auth import ApiKeyAuthenticator
+from inference.auth import KeyVerifier
 from inference.backend import Completion, LlmBackend
 from inference.ratelimit import RateLimiter
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class InferenceService:
     def __init__(
         self,
-        authenticator: ApiKeyAuthenticator,
+        authenticator: KeyVerifier,
         limiter: RateLimiter,
         backend: LlmBackend,
         audit: AuditLogger,
