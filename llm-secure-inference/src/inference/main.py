@@ -3,13 +3,14 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
+import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
 from inference.audit import LoggingAuditLogger
 from inference.auth import ApiKeyAuthenticator
-from inference.backend import EchoBackend
+from inference.backend import build_backend
 from inference.config import Settings, load_settings
 from inference.errors import (
     BackendError,
@@ -29,6 +30,7 @@ logger = logging.getLogger(__name__)
 class AppState:
     redis: Redis
     service: InferenceService
+    http_client: httpx.AsyncClient | None
 
 
 async def build_state(settings: Settings) -> AppState:
@@ -40,6 +42,13 @@ async def build_state(settings: Settings) -> AppState:
     )
     vault = VaultClient(HvacSecretReader(settings.vault_addr, settings.vault_token))
     api_keys = vault.read_secret(settings.vault_secret_path, "api_keys").split(",")
+    http_client: httpx.AsyncClient | None = None
+    backend_api_key = ""
+    if settings.backend == "vllm":
+        http_client = httpx.AsyncClient(
+            base_url=settings.backend_url, timeout=settings.backend_timeout_s
+        )
+        backend_api_key = vault.read_secret(settings.vault_secret_path, "backend_api_key")
     service = InferenceService(
         ApiKeyAuthenticator(api_keys),
         RateLimiter(
@@ -47,10 +56,10 @@ async def build_state(settings: Settings) -> AppState:
             settings.rate_limit_per_minute,
             fail_open=settings.rate_limit_fail_open,
         ),
-        EchoBackend(),
+        build_backend(settings, http_client, backend_api_key),
         LoggingAuditLogger(),
     )
-    return AppState(redis=redis, service=service)
+    return AppState(redis=redis, service=service, http_client=http_client)
 
 
 @asynccontextmanager
@@ -60,6 +69,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        if state.http_client is not None:
+            await state.http_client.aclose()
         await state.redis.aclose()
 
 
