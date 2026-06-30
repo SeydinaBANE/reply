@@ -2,13 +2,13 @@
 
 Pipeline d'industrialisation d'un modèle ML : entraînement reproductible, suivi des
 expériences (MLflow), publication des artefacts sur JFrog Artifactory, packaging Docker,
-orchestration via Vertex AI Pipelines, déploiement Kubernetes — le tout piloté par GitLab CI/CD.
+orchestration via Vertex AI Pipelines, déploiement Kubernetes — le tout piloté par CI/CD (GitHub Actions).
 
 ## Flux
 
 ```
-GitLab CI ──► train (MLflow tracking) ──► artifact (JFrog) ──► image (Docker)
-                                                                   └──► deploy (K8s)
+CI (GitHub Actions) ──► train (MLflow tracking) ──► artifact (JFrog) ──► image (Docker)
+                                                                               └──► deploy (K8s)
 ```
 
 - `src/pipeline/dataset.py` — chargement + validation du dataset (CSV → features/labels).

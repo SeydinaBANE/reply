@@ -26,6 +26,7 @@ service modèle ──► /metrics (Prometheus) ──► Grafana
 
 ```bash
 make install
+cp .env.example .env
 docker compose up -d        # Prometheus :9090, Grafana :3000
 make test
 ```

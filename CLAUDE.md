@@ -11,7 +11,7 @@ offer. Each top-level directory is a standalone project with its own
 | Directory | Purpose |
 |-----------|---------|
 | `rag-kubernetes/` | Enterprise RAG API (FastAPI) backed by pgvector + Redis, served on Kubernetes |
-| `mlops-pipeline/` | Train → registry → deploy pipeline driven by GitLab CI and Vertex AI |
+| `mlops-pipeline/` | Train → registry → deploy pipeline driven by GitHub Actions CI and Vertex AI |
 | `ml-observability/` | Model monitoring stack (Prometheus + Grafana) with data-drift detection |
 | `llm-secure-inference/` | Secret-managed LLM inference API using Vault + K8s RBAC |
 | `llm-finetuning/` | LoRA/QLoRA fine-tuning + automated evaluation harness on Vertex AI |
