@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from monitor.errors import DriftComputationError
 from monitor.models import AlertLevel
 from monitor.monitoring import evaluate_drift
 
@@ -23,5 +24,5 @@ def test_evaluate_drift_detects_critical_shift() -> None:
 
 
 def test_evaluate_drift_dimension_mismatch_raises() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(DriftComputationError):
         evaluate_drift([[1.0, 2.0]], [[1.0]], warning_threshold=0.2, critical_threshold=0.25)

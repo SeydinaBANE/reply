@@ -26,8 +26,8 @@
 - [x] Entrée CLI `python -m pipeline`
 - [ ] DAG Vertex AI Pipelines réel (composants train → eval → register)
 
-## CI/CD GitLab
-- [x] Jobs lint / typecheck / test
+## CI/CD
+- [x] Jobs lint / typecheck / test (GitHub Actions)
 - [ ] Job `train` (tag) + push artefact JFrog avec secrets masqués / Vault
 - [ ] Job `deploy` (kubectl) staging/prod
 

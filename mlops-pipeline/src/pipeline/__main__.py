@@ -31,6 +31,7 @@ def main() -> None:
         model_name=settings.model_name,
         model_path=args.model_path,
         threshold=settings.eval_threshold,
+        seed=settings.train_seed,
     )
     logger.info("pipeline finished accuracy=%.4f f1=%.4f", report.accuracy, report.f1)
 

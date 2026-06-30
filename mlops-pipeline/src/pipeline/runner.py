@@ -17,8 +17,9 @@ def run_pipeline(
     model_name: str,
     model_path: Path,
     threshold: float,
+    seed: int | None = None,
 ) -> EvaluationReport:
-    model, report = train_model(dataset)
+    model, report = train_model(dataset, seed=seed)
     tracker.log_metrics({"accuracy": report.accuracy, "f1": report.f1})
     save_model(model, model_path)
     tracker.log_artifact(model_path)

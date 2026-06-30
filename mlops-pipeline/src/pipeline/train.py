@@ -13,7 +13,7 @@ from pipeline.models import Dataset, EvaluationReport
 logger = logging.getLogger(__name__)
 
 
-def train_model(dataset: Dataset, test_size: float = 0.2, seed: int = 42) -> tuple[object, EvaluationReport]:
+def train_model(dataset: Dataset, test_size: float = 0.2, seed: int | None = None) -> tuple[object, EvaluationReport]:
     x_train, x_test, y_train, y_test = train_test_split(
         dataset.features, dataset.labels, test_size=test_size, random_state=seed
     )

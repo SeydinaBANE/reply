@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     vertex_location: str = "europe-west1"
     model_name: str = "model"
     eval_threshold: float = 0.8
+    train_seed: int = 42
 
 
 def load_settings() -> Settings:

@@ -24,7 +24,7 @@
 
 ## Infra
 - [x] `k8s/deployment.yaml` (resources, liveness/readiness probes)
-- [x] Pipeline GitLab : lint → typecheck → test → build
+- [x] CI GitHub Actions : lint → typecheck → test
 - [ ] `Secret` K8s pour DATABASE_URL / credentials Vertex
 - [ ] HorizontalPodAutoscaler sur la CPU
 
