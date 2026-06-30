@@ -3,6 +3,9 @@ stages: [quality, test, train, build, deploy]
 variables:
   IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
 
+# Secrets (JFROG_TOKEN, MLFLOW_TRACKING_URI, kube credentials) must be defined as
+# masked + protected CI/CD variables, or fetched at runtime from Vault. Never inline them.
+
 .python:
   image: python:3.11-slim
   before_script:
@@ -27,7 +30,7 @@ train:
   extends: .python
   stage: train
   script:
-    - python -m pipeline --data data/train.csv --label-column label
+    - python -m pipeline --data data/sample.csv --label-column label
   artifacts:
     paths: [models/]
   only: [tags]
@@ -46,5 +49,12 @@ deploy-staging:
   image: bitnami/kubectl:latest
   script:
     - kubectl set image deployment/model-serving serving=$IMAGE -n staging
+    - >
+      kubectl rollout status deployment/model-serving -n staging --timeout=120s
+      || { kubectl rollout undo deployment/model-serving -n staging; exit 1; }
+    - >
+      kubectl run smoke-$CI_COMMIT_SHORT_SHA --rm -i --restart=Never -n staging
+      --image=curlimages/curl -- curl -fsS http://model-serving/healthz
+      || { kubectl rollout undo deployment/model-serving -n staging; exit 1; }
   environment: { name: staging }
   only: [tags]

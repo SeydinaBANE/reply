@@ -22,7 +22,14 @@ def main() -> None:
     settings = load_settings()
     dataset = load_dataset(args.data, args.label_column)
     tracker = MlflowTracker(settings.mlflow_tracking_uri, settings.model_name)
-    registry = ArtifactRegistry(settings.jfrog_url, settings.jfrog_repo, settings.jfrog_token)
+    registry = ArtifactRegistry(
+        settings.jfrog_url,
+        settings.jfrog_repo,
+        settings.jfrog_token,
+        timeout=settings.registry_timeout,
+        max_attempts=settings.registry_max_attempts,
+        backoff_base=settings.registry_backoff_base,
+    )
 
     report = run_pipeline(
         dataset=dataset,
@@ -31,6 +38,10 @@ def main() -> None:
         model_name=settings.model_name,
         model_path=args.model_path,
         threshold=settings.eval_threshold,
+        baseline=settings.eval_baseline,
+        tolerance=settings.eval_tolerance,
+        seed=settings.train_seed,
+        test_size=settings.train_test_size,
     )
     logger.info("pipeline finished accuracy=%.4f f1=%.4f", report.accuracy, report.f1)
 

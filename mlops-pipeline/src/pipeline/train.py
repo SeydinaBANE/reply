@@ -13,17 +13,24 @@ from pipeline.models import Dataset, EvaluationReport
 logger = logging.getLogger(__name__)
 
 
-def train_model(dataset: Dataset, test_size: float = 0.2, seed: int = 42) -> tuple[object, EvaluationReport]:
+def train_model(
+    dataset: Dataset, test_size: float = 0.2, seed: int = 42
+) -> tuple[object, EvaluationReport]:
     x_train, x_test, y_train, y_test = train_test_split(
-        dataset.features, dataset.labels, test_size=test_size, random_state=seed
+        dataset.features,
+        dataset.labels,
+        test_size=test_size,
+        random_state=seed,
+        stratify=dataset.labels,
     )
     model = make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000))
     model.fit(x_train, y_train)
 
     predictions = model.predict(x_test)
+    average = "binary" if len(set(dataset.labels)) == 2 else "macro"
     report = EvaluationReport(
         accuracy=float(accuracy_score(y_test, predictions)),
-        f1=float(f1_score(y_test, predictions, average="binary", zero_division=0.0)),
+        f1=float(f1_score(y_test, predictions, average=average, zero_division=0.0)),
         n_train=len(x_train),
         n_test=len(x_test),
     )
