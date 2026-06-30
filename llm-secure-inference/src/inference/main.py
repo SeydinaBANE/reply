@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status
 from redis.asyncio import Redis
+from redis.exceptions import RedisError
 
 from inference.audit import LoggingAuditLogger
 from inference.auth import ApiKeyAuthenticator
@@ -31,7 +32,12 @@ class AppState:
 
 
 async def build_state(settings: Settings) -> AppState:
-    redis: Redis = Redis.from_url(settings.redis_url)
+    redis: Redis = Redis.from_url(
+        settings.redis_url,
+        socket_timeout=settings.redis_socket_timeout,
+        socket_connect_timeout=settings.redis_socket_timeout,
+        health_check_interval=30,
+    )
     vault = VaultClient(HvacSecretReader(settings.vault_addr, settings.vault_token))
     api_keys = vault.read_secret(settings.vault_secret_path, "api_keys").split(",")
     service = InferenceService(
@@ -81,7 +87,12 @@ async def healthz() -> dict[str, str]:
 
 @app.get("/readyz")
 async def readyz(state: AppState = Depends(get_state)) -> dict[str, str]:
-    await state.redis.ping()
+    try:
+        await state.redis.ping()
+    except RedisError as exc:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, detail="redis unavailable"
+        ) from exc
     return {"status": "ready"}
 
 
