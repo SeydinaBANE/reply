@@ -7,8 +7,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     vault_addr: str
-    vault_token: str
+    vault_token: str = ""
+    vault_auth: Literal["token", "kubernetes"] = "token"
+    vault_role: str = "llm-inference"
     vault_secret_path: str = "secret/data/llm"
+    api_key_refresh_s: float = 60.0
     redis_url: str
     redis_socket_timeout: float = 5.0
     rate_limit_per_minute: int = 60

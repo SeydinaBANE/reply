@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -9,11 +10,12 @@ from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
 from inference.audit import LoggingAuditLogger
-from inference.auth import ApiKeyAuthenticator
+from inference.auth import ApiKeyProvider
 from inference.backend import build_backend
 from inference.config import Settings, load_settings
 from inference.errors import (
     BackendError,
+    InferenceError,
     RateLimiterUnavailableError,
     RateLimitExceededError,
     UnauthorizedError,
@@ -21,7 +23,12 @@ from inference.errors import (
 from inference.models import CompletionRequest, CompletionResponse
 from inference.ratelimit import RateLimiter
 from inference.service import InferenceService
-from inference.vault_client import HvacSecretReader, VaultClient
+from inference.vault_client import (
+    HvacSecretReader,
+    KubernetesAuthReader,
+    SecretReader,
+    VaultClient,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +36,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AppState:
     redis: Redis
+    vault: VaultClient
     service: InferenceService
     http_client: httpx.AsyncClient | None
+
+
+def build_vault(settings: Settings) -> VaultClient:
+    reader: SecretReader
+    if settings.vault_auth == "kubernetes":
+        reader = KubernetesAuthReader(settings.vault_addr, settings.vault_role)
+    else:
+        reader = HvacSecretReader(settings.vault_addr, settings.vault_token)
+    return VaultClient(reader)
 
 
 async def build_state(settings: Settings) -> AppState:
@@ -40,8 +57,11 @@ async def build_state(settings: Settings) -> AppState:
         socket_connect_timeout=settings.redis_socket_timeout,
         health_check_interval=30,
     )
-    vault = VaultClient(HvacSecretReader(settings.vault_addr, settings.vault_token))
-    api_keys = vault.read_secret(settings.vault_secret_path, "api_keys").split(",")
+    vault = build_vault(settings)
+
+    def load_api_keys() -> list[str]:
+        return vault.read_secret(settings.vault_secret_path, "api_keys").split(",")
+
     http_client: httpx.AsyncClient | None = None
     backend_api_key = ""
     if settings.backend == "vllm":
@@ -50,7 +70,7 @@ async def build_state(settings: Settings) -> AppState:
         )
         backend_api_key = vault.read_secret(settings.vault_secret_path, "backend_api_key")
     service = InferenceService(
-        ApiKeyAuthenticator(api_keys),
+        ApiKeyProvider(load_api_keys, settings.api_key_refresh_s),
         RateLimiter(
             redis,
             settings.rate_limit_per_minute,
@@ -59,7 +79,7 @@ async def build_state(settings: Settings) -> AppState:
         build_backend(settings, http_client, backend_api_key),
         LoggingAuditLogger(),
     )
-    return AppState(redis=redis, service=service, http_client=http_client)
+    return AppState(redis=redis, vault=vault, service=service, http_client=http_client)
 
 
 @asynccontextmanager
@@ -100,9 +120,14 @@ async def healthz() -> dict[str, str]:
 async def readyz(state: AppState = Depends(get_state)) -> dict[str, str]:
     try:
         await state.redis.ping()
+        await asyncio.to_thread(state.vault.health)
     except RedisError as exc:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE, detail="redis unavailable"
+        ) from exc
+    except InferenceError as exc:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, detail="vault unavailable"
         ) from exc
     return {"status": "ready"}
 

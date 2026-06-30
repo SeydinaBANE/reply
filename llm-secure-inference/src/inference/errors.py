@@ -6,6 +6,14 @@ class SecretNotFoundError(InferenceError):
     pass
 
 
+class VaultAuthError(InferenceError):
+    pass
+
+
+class VaultUnavailableError(InferenceError):
+    pass
+
+
 class RateLimitExceededError(InferenceError):
     pass
 
